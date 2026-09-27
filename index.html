@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MindGameTrainer</title>
+<style>
+  :root{
+    --bg:#0e1418; --panel:#161f26; --panel2:#1d2932; --line:#2a3b46;
+    --txt:#e7eef2; --muted:#8ba0ad; --teal:#3fb9a8; --teal2:#2b8377;
+    --orange:#e8833a; --red:#e05a5a; --green:#4fbf7a; --gold:#e8c24a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:860px;margin:0 auto;padding:16px;padding-bottom:40px}
+  h1{font-size:1.5rem;margin:.2rem 0;letter-spacing:.5px}
+  h1 span{color:var(--teal)}
+  .sub{color:var(--muted);font-size:.85rem;margin-bottom:12px}
+  #banner{background:#3a2a12;border:1px solid var(--gold);color:#f0d68a;
+    padding:9px 12px;border-radius:8px;font-size:.82rem;margin-bottom:12px;display:none}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0;position:sticky;top:0;
+    background:var(--bg);padding:6px 0;z-index:5}
+  .tabs button{background:var(--panel);color:var(--muted);border:1px solid var(--line);
+    padding:9px 13px;border-radius:8px;cursor:pointer;font-size:.88rem;flex:1;min-width:90px}
+  .tabs button.active{background:var(--teal2);color:#fff;border-color:var(--teal)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+  .hidden{display:none!important}
+  label{display:block;font-size:.8rem;color:var(--muted);margin:8px 0 4px}
+  input,select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);
+    border-radius:8px;padding:11px;font-size:1rem;width:100%}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:130px}
+  button.act{background:var(--teal2);color:#fff;border:1px solid var(--teal);
+    border-radius:8px;padding:12px 14px;font-size:.95rem;cursor:pointer}
+  button.act:hover{background:var(--teal)}
+  button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);
+    border-radius:8px;padding:11px 12px;cursor:pointer;font-size:.85rem}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);
+    border-radius:999px;padding:4px 11px;font-size:.78rem;color:var(--muted);margin:3px 3px 0 0}
+  .who{font-weight:600;color:var(--teal)}
+  .seg{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+  .seg button{flex:1;min-width:88px;background:var(--panel2);color:var(--muted);
+    border:1px solid var(--line);border-radius:8px;padding:11px 8px;cursor:pointer;font-size:.86rem}
+  .seg button.on{background:var(--orange);color:#20140a;border-color:var(--orange);font-weight:600}
+  .nums{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+  .nums button{aspect-ratio:1;font-size:2rem;font-weight:700;background:var(--panel2);
+    color:var(--txt);border:2px solid var(--line);border-radius:14px;cursor:pointer;
+    transition:.08s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .nums button:active{transform:scale(.94);border-color:var(--teal)}
+  .arena{text-align:center;min-height:92px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+  .bigres{font-size:1.1rem;font-weight:600}
+  .vs{font-size:1.35rem}
+  .win{color:var(--green)} .lose{color:var(--red)} .muted{color:var(--muted)}
+  .prog{height:10px;background:var(--panel2);border-radius:6px;overflow:hidden;margin:8px 0}
+  .prog>div{height:100%;transition:.2s;width:0}
+  .prog.att>div{background:var(--teal)} .prog.def>div{background:var(--orange)}
+  table{width:100%;border-collapse:collapse;font-size:.85rem}
+  th,td{text-align:right;padding:8px 7px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.4px}
+  tr.glob td{background:var(--panel2);font-weight:600;border-top:2px solid var(--teal)}
+  .score{font-weight:700;color:var(--gold)}
+  .bar{background:var(--panel2);border-radius:6px;overflow:hidden;height:22px}
+  .bar>div{height:100%;background:var(--teal2);display:flex;align-items:center;justify-content:flex-end;
+    padding-right:6px;color:#fff;font-size:.75rem;font-weight:600;min-width:26px}
+  .freqrow{display:flex;align-items:center;gap:10px;margin:6px 0}
+  .freqrow .n{width:22px;font-weight:700;text-align:center}
+  .freqrow .bar{flex:1}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+  .kv span:last-child{font-weight:600;text-align:right}
+  .note{font-size:.8rem;color:var(--muted);margin-top:8px}
+  .hint{background:var(--panel2);border-left:3px solid var(--teal);padding:10px 12px;border-radius:6px;font-size:.85rem;margin-top:10px}
+  .status{font-size:.75rem;color:var(--muted);margin-top:8px;min-height:1em}
+  .foot{color:var(--muted);font-size:.72rem;text-align:center;margin-top:18px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:5px;vertical-align:middle}
+  .dot.ok{background:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Mind<span>Game</span>Trainer</h1>
+  <div class="sub">Allenati contro un bot casuale. L'obiettivo non è battere il caso, ma diventare imprevedibile. <span id="pilotWho"></span></div>
+  <div id="banner"></div>
+
+  <div class="tabs">
+    <button data-tab="player" class="active">Giocatore</button>
+    <button data-tab="play">Gioca</button>
+    <button data-tab="stats">Ranking</button>
+    <button data-tab="analysis">Analisi</button>
+    <button data-tab="info">Info</button>
+  </div>
+
+  <!-- GIOCATORE -->
+  <section id="tab-player" class="panel">
+    <label>Nuovo nickname</label>
+    <div class="row">
+      <input id="newNick" placeholder="es. AlienBluff" maxlength="20" autocomplete="off">
+      <button class="act" style="flex:0 0 auto" id="createBtn">Registra</button>
+    </div>
+    <label style="margin-top:14px">Oppure continua con un nickname esistente</label>
+    <div class="row">
+      <select id="existSel"></select>
+      <button class="act" style="flex:0 0 auto" id="selectBtn">Continua</button>
+    </div>
+    <div class="status"><span class="dot" id="connDot"></span><span id="connMsg">connessione…</span></div>
+    <div id="playerMsg" class="note"></div>
+  </section>
+
+  <!-- GIOCA -->
+  <section id="tab-play" class="panel hidden">
+    <div id="playNeedNick" class="hint">Registra o seleziona un nickname nella scheda <b>Giocatore</b> per iniziare.</div>
+    <div id="playUI" class="hidden">
+      <label>Ruolo</label>
+      <div class="seg" id="roleSeg">
+        <button data-role="attack" class="on">Attacco (numeri DIVERSI)</button>
+        <button data-role="defense">Difesa (STESSO numero)</button>
+      </div>
+      <label>Modalità</label>
+      <div class="seg" id="modeSeg">
+        <button data-mode="single" class="on">Round singolo</button>
+        <button data-mode="full">Attacco completo</button>
+      </div>
+      <div id="dvWrap">
+        <label>Difesa della bodypart (mindgame da vincere di fila)</label>
+        <div class="seg" id="dvSeg">
+          <button data-dv="2" class="on">2</button><button data-dv="3">3</button>
+          <button data-dv="4">4</button><button data-dv="5">5</button>
+        </div>
+      </div>
+      <div class="panel" style="background:var(--panel2);margin-top:12px">
+        <div id="progWrap" class="hidden">
+          <div class="note" id="progLabel"></div>
+          <div class="prog" id="progBar"><div></div></div>
+        </div>
+        <div class="arena">
+          <div id="arenaMsg" class="muted">Scegli un numero per giocare un mindgame.</div>
+          <div id="arenaVs" class="vs muted hidden">— vs —</div>
+          <div id="arenaRes" class="bigres"></div>
+        </div>
+        <div class="nums" id="numPad">
+          <button data-n="1">1</button><button data-n="2">2</button>
+          <button data-n="3">3</button><button data-n="4">4</button>
+        </div>
+        <div>
+          <span class="pill">Mindgame: <b id="cntEx">0</b></span>
+          <span class="pill">Vinti: <b id="cntWin">0</b> (<span id="cntWinP">0%</span>)</span>
+          <span class="pill" id="cntMatchPill">Attacchi: <b id="cntMatch">0</b></span>
+        </div>
+      </div>
+      <div class="status" id="playStatus"></div>
+      <div class="note">Gioca quanto vuoi: i dati si salvano da soli. Cambia scheda per fermarti.</div>
+    </div>
+  </section>
+
+  <!-- RANKING -->
+  <section id="tab-stats" class="panel hidden">
+    <div class="row">
+      <div class="seg" id="rankSeg" style="flex:1">
+        <button data-r="combined" class="on">Complessivo</button>
+        <button data-r="attack">Attacco</button>
+        <button data-r="defense">Difesa</button>
+      </div>
+      <button class="ghost" style="flex:0 0 auto" id="rankReload">Aggiorna</button>
+    </div>
+    <div class="status" id="rankStatus"></div>
+    <div style="overflow-x:auto">
+      <table id="rankTable">
+        <thead><tr><th>Nickname</th><th>Mindgame</th><th>Win %</th><th>Att. %</th><th>Imprevedib.</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="hint">L'<b>imprevedibilità</b> (0–100) misura quanto è difficile prevedere le tue scelte: 100 = perfettamente casuale. Contro un bot casuale il win rate dipende quasi solo dalla fortuna, quindi il ranking è ordinato per imprevedibilità. Serve un minimo di 100 mindgame per un punteggio affidabile.</div>
+  </section>
+
+  <!-- ANALISI -->
+  <section id="tab-analysis" class="panel hidden">
+    <div class="row">
+      <div><label>Nickname</label><select id="anNick"></select></div>
+      <div><label>Ruolo</label><select id="anRole">
+        <option value="combined">Complessivo</option>
+        <option value="attack">Attacco</option>
+        <option value="defense">Difesa</option>
+      </select></div>
+      <button class="ghost" style="flex:0 0 auto;align-self:flex-end" id="anReload">Carica</button>
+    </div>
+    <div class="status" id="anStatus"></div>
+    <div id="anBody" style="margin-top:12px"></div>
+  </section>
+
+  <!-- INFO -->
+  <section id="tab-info" class="panel hidden">
+    <p style="font-size:.9rem">I dati sono salvati online (Supabase) e condivisi tra tutti i giocatori. Ranking e statistiche sono globali.</p>
+    <p style="font-size:.9rem"><b>Come funziona:</b> registri o scegli un nickname, giochi mindgame in attacco o difesa, e ogni scelta viene registrata. L'app misura quanto sei imprevedibile e, dopo 100 mindgame, mostra gli schemi che ti tradiscono.</p>
+    <p style="font-size:.85rem;color:var(--muted)">Nota: senza login chiunque può scegliere qualsiasi nickname. Va bene per allenarsi, ma tienilo a mente.</p>
+    <div class="foot">MindGameTrainer · mindgame 1–4 · diverso = punto attaccante, uguale = difesa riuscita</div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
+/* ============================================================
+   CONFIGURAZIONE — sostituisci con i dati del TUO progetto Supabase
+   (Project Settings → API). Vedi README.
+   ============================================================ */
+const SUPABASE_URL = "https://gcgdfdhzpdhuvkhzuggq.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZ2RmZGh6cGRodXZraHp1Z2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0OTg3MDksImV4cCI6MjEwNjA3NDcwOX0.mY3tReIkmaGJG4ifjpsjK9VxM_FK7x2KFL6nOZ1oyS8";
+/* ============================================================ */
+
+const NUMS=[1,2,3,4], FLUSHN=5, MINSAMPLE=100, MINTRANS=100, PEND_KEY="mgt_pending_v1";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let sb=null, online=false;
+const pageId = Math.random().toString(36).slice(2,9);
+let ctx=0, seqNo=0;                 // context run id + position
+let cur=null, role="attack", mode="single", dv=2;
+let mState=null;                    // full-mode progress
+let disp={exchanges:0,wins:0,matches:0,matchWins:0}; // display counters (current role)
+
+/* ---------- pending queue (evita perdita dati) ---------- */
+function loadPending(){ try{return JSON.parse(localStorage.getItem(PEND_KEY))||[]}catch(e){return []} }
+function savePending(a){ try{localStorage.setItem(PEND_KEY,JSON.stringify(a))}catch(e){} }
+let pending=loadPending();
+
+function initDB(){
+  const bad = !SUPABASE_URL || SUPABASE_URL.indexOf("__")===0 || !window.supabase;
+  if(bad){
+    banner("⚠ Supabase non configurato: i dati non vengono salvati online. Segui il README per inserire URL e chiave.");
+    setConn(false,"non configurato"); return;
+  }
+  try{ sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY); online=true; setConn(true,"online"); }
+  catch(e){ setConn(false,"errore connessione"); }
+}
+function banner(t){ const b=$("#banner"); b.textContent=t; b.style.display="block"; }
+function setConn(ok,msg){ $("#connDot").classList.toggle("ok",ok); $("#connMsg").textContent=msg; }
+
+/* ---------- rules ---------- */
+const botPick=()=>NUMS[Math.floor(Math.random()*4)];
+const isWin=(r,h,b)=> r==="attack"? h!==b : h===b;
+const sessionId=()=>`${pageId}.${ctx}`;
+
+/* ---------- play ---------- */
+function startMatch(){ mState = mode==="full"? {hp:0,bp:0} : null; renderProg(); }
+function renderProg(){
+  const w=$("#progWrap");
+  if(mode!=="full"){ w.classList.add("hidden"); return; }
+  w.classList.remove("hidden");
+  const bar=$("#progBar"), fill=bar.firstElementChild;
+  if(role==="attack"){ bar.className="prog att"; fill.style.width=(mState.hp/dv*100)+"%";
+    $("#progLabel").innerHTML=`Attacco — punti forza <b>${mState.hp}/${dv}</b>`; }
+  else{ bar.className="prog def"; fill.style.width=(mState.bp/dv*100)+"%";
+    $("#progLabel").innerHTML=`Difesa — il bot ha <b>${mState.bp}/${dv}</b>. Eguaglialo per bloccarlo.`; }
+}
+function play(human){
+  if(!cur) return;
+  const bot=botPick(), win=isWin(role,human,bot);
+  let matchEnd=0, matchMsg="";
+  if(mode==="full"){
+    if(role==="attack"){
+      if(win){ mState.hp++; if(mState.hp>=dv){ matchEnd=1; matchMsg=`💥 Bodypart distrutta (${dv}/${dv})!`; } }
+      else { matchEnd=2; matchMsg="🛡 Difeso dal bot: attacco fallito."; }
+    } else {
+      if(win){ matchEnd=1; matchMsg="🛡 Bloccato! Hai difeso."; }
+      else { mState.bp++; if(mState.bp>=dv){ matchEnd=2; matchMsg=`💥 Il bot ti ha battuto (${dv}/${dv}).`; } }
+    }
+  }
+  // display counters
+  disp.exchanges++; if(win)disp.wins++;
+  if(matchEnd){ disp.matches++; if(matchEnd===1)disp.matchWins++; startMatch(); }
+  // enqueue event
+  pending.push({nickname:cur, role, mode, dv:(mode==="full"?dv:null),
+    move:human, bot, outcome:win?1:0, match_end:matchEnd, session_id:sessionId(), seq:seqNo++});
+  savePending(pending);
+  showResult(human,bot,win,matchMsg); renderProg(); refreshCounters();
+  if(pending.length>=FLUSHN) flush();
+}
+function showResult(human,bot,win,matchMsg){
+  $("#arenaMsg").classList.add("hidden");
+  const vs=$("#arenaVs"); vs.classList.remove("hidden","muted");
+  vs.innerHTML=`Tu <b style="color:var(--teal)">${human}</b> &nbsp;—&nbsp; Bot <b style="color:var(--orange)">${bot}</b>`;
+  $("#arenaRes").innerHTML=(win?'<span class="win">✓ mindgame vinto</span>':'<span class="lose">✗ mindgame perso</span>')
+    +(matchMsg?`<div class="note" style="margin-top:4px">${matchMsg}</div>`:"");
+}
+function refreshCounters(){
+  $("#cntEx").textContent=disp.exchanges;
+  $("#cntWin").textContent=disp.wins;
+  $("#cntWinP").textContent=disp.exchanges?Math.round(disp.wins/disp.exchanges*100)+"%":"0%";
+  const mp=$("#cntMatchPill");
+  if(mode==="full"){ mp.classList.remove("hidden");
+    mp.innerHTML=`Attacchi ${role==="attack"?"vinti":"difesi"}: <b>${disp.matchWins}</b>/${disp.matches}`; }
+  else mp.classList.add("hidden");
+}
+async function flush(){
+  if(!online || !pending.length) return;
+  const batch=pending.slice();
+  try{
+    const {error}=await sb.from("events").insert(batch);
+    if(error) throw error;
+    pending=pending.slice(batch.length); savePending(pending);
+    $("#playStatus").textContent="";
+  }catch(e){ $("#playStatus").innerHTML='<span class="lose">salvataggio in attesa (riprovo)…</span>'; }
+}
+
+/* ---------- analysis math ---------- */
+function log2(x){return Math.log(x)/Math.log(2);}
+// aggregate an array of event rows (already filtered) grouped by session for sequences
+function analyzeEvents(rows){
+  const freq=[0,0,0,0]; let wins=0, matches=0, matchWins=0, total=0;
+  const T=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+  let wR=0,wT=0,lR=0,lT=0;
+  const bySess={};
+  for(const e of rows){ (bySess[e.session_id]=bySess[e.session_id]||[]).push(e); }
+  const ngC={3:{},4:{},5:{}};
+  for(const sid in bySess){
+    const arr=bySess[sid]; // already id-ordered globally; keep order
+    for(let i=0;i<arr.length;i++){
+      const e=arr[i]; total++; freq[e.move-1]++; if(e.outcome)wins++;
+      if(e.match_end===1){matches++;matchWins++;} else if(e.match_end===2){matches++;}
+      if(i>0){ const p=arr[i-1];
+        T[p.move-1][e.move-1]++;
+        const rep=e.move===p.move;
+        if(p.outcome===1){wT++; if(rep)wR++;} else {lT++; if(rep)lR++;}
+      }
+    }
+    const mv=arr.map(e=>e.move);
+    for(const n of [3,4,5]){ for(let i=0;i+n<=mv.length;i++){ const k=mv.slice(i,i+n).join("-"); ngC[n][k]=(ngC[n][k]||0)+1; } }
+  }
+  const probs=freq.map(f=>total?f/total:0);
+  let H=0; probs.forEach(p=>{if(p>0)H-=p*log2(p);});
+  const maxFreqP= total?Math.max(...probs):0.25, favNum=probs.indexOf(Math.max(...probs))+1;
+  let tt=0,bs=0; for(let p=0;p<4;p++){const r=T[p].reduce((a,b)=>a+b,0);tt+=r;bs+=Math.max(...T[p]);}
+  const markovAcc= tt?bs/tt:0.25, useMarkov= tt>=MINTRANS;
+  const bestPred=Math.max(maxFreqP,useMarkov?markovAcc:0);
+  const exploit=Math.max(0,Math.min(1,(bestPred-0.25)/0.75));
+  const score= total>=MINSAMPLE? Math.round((1-exploit)*100):null;
+  const ngrams={};
+  for(const n of [3,4,5]){ let bk=null,bc=0; for(const k in ngC[n]){ if(ngC[n][k]>bc){bc=ngC[n][k];bk=k;} }
+    const windows=Math.max(0,total-n+1); ngrams[n]= bk?{seq:bk,count:bc,expected:windows*Math.pow(.25,n)}:null; }
+  return {total,probs,H,maxFreqP,favNum,T,useMarkov,score,winrate:total?wins/total:0,
+    matches,matchWins,wStayRep:wT?wR/wT:null,lShiftRep:lT?lR/lT:null,ngrams};
+}
+
+/* ---------- data fetch ---------- */
+async function fetchEvents(nick){
+  if(!online) return [];
+  let all=[], from=0, page=1000;
+  while(true){
+    let q=sb.from("events").select("nickname,role,move,outcome,match_end,session_id,id")
+      .order("id",{ascending:true}).range(from,from+page-1);
+    if(nick) q=q.eq("nickname",nick);
+    const {data,error}=await q; if(error) throw error;
+    all=all.concat(data); if(data.length<page) break; from+=page;
+    if(from>200000) break; // safety
+  }
+  return all;
+}
+
+/* ---------- ranking ---------- */
+async function renderRank(){
+  const st=$("#rankStatus"); if(!online){ st.textContent="offline: nessun dato."; return; }
+  st.textContent="carico…";
+  let rows; try{ rows=await fetchEvents(null); }catch(e){ st.innerHTML='<span class="lose">errore di lettura.</span>'; return; }
+  st.textContent="";
+  const r=$("#rankSeg .on").dataset.r;
+  const agg={}; // nick -> role -> {ex,win,freq,T,matches,matchWins}
+  const last={};
+  const blank=()=>({ex:0,win:0,freq:[0,0,0,0],T:[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],matches:0,matchWins:0});
+  for(const e of rows){
+    agg[e.nickname]=agg[e.nickname]||{attack:blank(),defense:blank()};
+    const s=agg[e.nickname][e.role]; s.ex++; s.win+=e.outcome; s.freq[e.move-1]++;
+    if(e.match_end===1){s.matches++;s.matchWins++;} else if(e.match_end===2){s.matches++;}
+    const key=e.nickname+"|"+e.role+"|"+e.session_id, pm=last[key];
+    if(pm) s.T[pm-1][e.move-1]++; last[key]=e.move;
+  }
+  const out=[]; const g=blank();
+  for(const nick in agg){
+    let s;
+    if(r==="combined"){ s=blank();
+      for(const rr of ["attack","defense"]){ const x=agg[nick][rr];
+        s.ex+=x.ex; s.win+=x.win; s.matches+=x.matches; s.matchWins+=x.matchWins;
+        for(let i=0;i<4;i++){ s.freq[i]+=x.freq[i]; for(let j=0;j<4;j++) s.T[i][j]+=x.T[i][j]; } }
+    } else s=agg[nick][r];
+    g.ex+=s.ex; g.win+=s.win; g.matches+=s.matches; g.matchWins+=s.matchWins;
+    out.push({nick, ex:s.ex, win:s.ex?s.win/s.ex:0, mw:s.matches?s.matchWins/s.matches:null, score:scoreOf(s)});
+  }
+  out.sort((a,b)=>(b.score??-1)-(a.score??-1) || b.ex-a.ex);
+  const tb=$("#rankTable tbody"); tb.innerHTML="";
+  if(!out.length){ tb.innerHTML='<tr><td colspan="5" class="muted">Nessun dato. Gioca qualche mindgame!</td></tr>'; return; }
+  for(const o of out){ const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${esc(o.nick)}</td><td>${o.ex}</td><td>${o.ex?Math.round(o.win*100)+"%":"–"}</td>
+      <td>${o.mw==null?"–":Math.round(o.mw*100)+"%"}</td>
+      <td class="score">${o.score==null?'<span class="muted" style="font-weight:400">n/d</span>':o.score}</td>`;
+    tb.appendChild(tr);
+  }
+  const gtr=document.createElement("tr"); gtr.className="glob";
+  gtr.innerHTML=`<td>GLOBALE (${out.length})</td><td>${g.ex}</td><td>${g.ex?Math.round(g.win/g.ex*100)+"%":"–"}</td>
+    <td>${g.matches?Math.round(g.matchWins/g.matches*100)+"%":"–"}</td><td>—</td>`;
+  tb.appendChild(gtr);
+}
+function scoreOf(s){
+  const total=s.freq.reduce((a,b)=>a+b,0); if(total<MINSAMPLE) return null;
+  const maxP=Math.max(...s.freq)/total;
+  let tt=0,bs=0; for(let p=0;p<4;p++){const r=s.T[p].reduce((a,b)=>a+b,0);tt+=r;bs+=Math.max(...s.T[p]);}
+  const mk= tt>=MINTRANS? bs/tt : 0;
+  const best=Math.max(maxP,mk), ex=Math.max(0,Math.min(1,(best-0.25)/0.75));
+  return Math.round((1-ex)*100);
+}
+
+/* ---------- analysis view ---------- */
+async function renderAnalysis(){
+  const nick=$("#anNick").value, r=$("#anRole").value, box=$("#anBody"), st=$("#anStatus");
+  if(!nick){ box.innerHTML='<p class="muted">Nessun nickname.</p>'; return; }
+  if(!online){ box.innerHTML='<p class="muted">Offline.</p>'; return; }
+  st.textContent="carico…"; box.innerHTML="";
+  let rows; try{ rows=await fetchEvents(nick); }catch(e){ st.innerHTML='<span class="lose">errore.</span>'; return; }
+  st.textContent="";
+  if(r!=="combined") rows=rows.filter(e=>e.role===r);
+  const a=analyzeEvents(rows);
+  if(a.total===0){ box.innerHTML='<p class="muted">Nessun mindgame per questo ruolo.</p>'; return; }
+  let html="";
+  html+=`<div class="kv"><span>Mindgame giocati</span><span>${a.total}</span></div>`;
+  html+=`<div class="kv"><span>Win rate (mindgame)</span><span>${Math.round(a.winrate*100)}%</span></div>`;
+  if(a.matches) html+=`<div class="kv"><span>Attacchi vinti</span><span>${a.matchWins}/${a.matches} (${Math.round(a.matchWins/a.matches*100)}%)</span></div>`;
+  html+=`<div class="kv"><span>Imprevedibilità</span><span class="score">${a.score==null?"n/d (pochi dati)":a.score+"/100"}</span></div>`;
+  html+=`<div class="kv"><span>Entropia scelte</span><span>${a.H.toFixed(2)} / 2.00 bit</span></div>`;
+  html+=`<h4 style="margin:14px 0 6px">Frequenza dei numeri</h4>`;
+  for(let i=0;i<4;i++){ const p=a.probs[i];
+    html+=`<div class="freqrow"><div class="n">${i+1}</div><div class="bar"><div style="width:${Math.max(p*100,3)}%">${Math.round(p*100)}%</div></div></div>`; }
+  if(a.total<100){
+    html+=`<div class="hint">Servono almeno <b>100 mindgame</b> per il riconoscimento dei pattern (ne hai ${a.total}).</div>`;
+    box.innerHTML=html; return;
+  }
+  const dev=Math.round((a.maxFreqP-0.25)*100);
+  html+=`<div class="hint"><b>Come ti batterebbe un'AI</b><br>`;
+  const bits=[];
+  if(a.maxFreqP>0.32) bits.push(`Preferisci il <b>${a.favNum}</b> (${Math.round(a.maxFreqP*100)}%, +${dev} punti sopra il 25% casuale).`);
+  else bits.push(`Distribuzione dei numeri equilibrata.`);
+  if(a.useMarkov){ let best={g:0};
+    for(let p=0;p<4;p++){ const row=a.T[p], s=row.reduce((x,y)=>x+y,0); if(s<6)continue;
+      const mx=Math.max(...row), nx=row.indexOf(mx)+1, pr=mx/s; if(pr-0.25>best.g) best={g:pr-0.25,from:p+1,to:nx,pr}; }
+    if(best.g>0.12) bits.push(`Dopo aver detto <b>${best.from}</b> tendi a dire <b>${best.to}</b> (${Math.round(best.pr*100)}%).`);
+  }
+  if(a.wStayRep!=null && a.wStayRep>0.4) bits.push(`Dopo una vittoria <b>ripeti</b> spesso il numero (${Math.round(a.wStayRep*100)}%).`);
+  if(a.lShiftRep!=null && a.lShiftRep<0.12) bits.push(`Dopo una sconfitta <b>cambi quasi sempre</b> numero.`);
+  if(bits.length===0) bits.push(`Nessuno schema semplice evidente: sei difficile da prevedere.`);
+  html+=bits.map(b=>"• "+b).join("<br>")+`</div>`;
+  html+=`<h4 style="margin:14px 0 6px">Sequenze ricorrenti (ordine 3–5)</h4>`;
+  for(const n of [3,4,5]){ const gg=a.ngrams[n]; if(!gg) continue;
+    const f=gg.expected>0?gg.count/gg.expected:0;
+    html+=`<div class="kv"><span>Pattern di ${n}</span><span>${gg.seq.split("-").join(" · ")} — ${gg.count}× <span class="muted" style="font-weight:400">(atteso ~${gg.expected.toFixed(1)}${f>=1.5?`, ×${f.toFixed(1)}`:""})</span></span></div>`; }
+  html+=`<div class="note">L'AI finale userà frequenze, transizioni di Markov e sequenze ricorrenti per prevederti. Più questi numeri sono vicini al caso, più sei forte.</div>`;
+  box.innerHTML=html;
+}
+
+/* ---------- players / selects ---------- */
+async function refreshPlayers(){
+  if(!online) return;
+  try{ const {data}=await sb.from("players").select("nickname").order("nickname");
+    const names=(data||[]).map(x=>x.nickname);
+    const opt=sel=>names.map(n=>`<option ${n===sel?"selected":""}>${esc(n)}</option>`).join("");
+    $("#existSel").innerHTML=names.length?opt():'<option value="">— nessuno —</option>';
+    $("#anNick").innerHTML=names.length?opt(cur):'<option value="">—</option>';
+  }catch(e){}
+}
+async function registerPlayer(n){
+  if(!online){ banner("Non configurato: impossibile registrare online."); return false; }
+  try{ await sb.from("players").upsert({nickname:n},{onConflict:"nickname",ignoreDuplicates:true}); return true; }
+  catch(e){ $("#playerMsg").innerHTML='<span class="lose">Errore di registrazione.</span>'; return false; }
+}
+async function seedCounters(){
+  disp={exchanges:0,wins:0,matches:0,matchWins:0};
+  if(!online||!cur) { refreshCounters(); return; }
+  try{ const {data}=await sb.from("events").select("outcome,match_end").eq("nickname",cur).eq("role",role);
+    for(const e of (data||[])){ disp.exchanges++; if(e.outcome)disp.wins++;
+      if(e.match_end===1){disp.matches++;disp.matchWins++;} else if(e.match_end===2){disp.matches++;} }
+  }catch(e){}
+  refreshCounters();
+}
+
+/* ---------- ui ---------- */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function newContext(){ ctx++; seqNo=0; }
+function setPilot(){
+  $("#pilotWho").innerHTML= cur?`Giochi come <span class="who">${esc(cur)}</span>.`:"";
+  $("#playNeedNick").classList.toggle("hidden",!!cur);
+  $("#playUI").classList.toggle("hidden",!cur);
+  if(cur){ newContext(); startMatch(); seedCounters(); resetArena(); }
+}
+function resetArena(){ $("#arenaMsg").classList.remove("hidden"); $("#arenaVs").classList.add("hidden"); $("#arenaRes").innerHTML=""; }
+function showTab(t){
+  if(t!=="play") flush();
+  $$(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
+  $$('section[id^="tab-"]').forEach(s=>s.classList.toggle("hidden",s.id!=="tab-"+t));
+  if(t==="stats") renderRank();
+  if(t==="analysis"){ refreshPlayers().then(renderAnalysis); }
+}
+
+$$(".tabs button").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+$("#createBtn").onclick=async()=>{
+  const n=$("#newNick").value.trim();
+  if(!n){ $("#playerMsg").textContent="Inserisci un nickname."; return; }
+  const ok=await registerPlayer(n); if(!ok) return;
+  cur=n; $("#newNick").value=""; await refreshPlayers();
+  $("#playerMsg").innerHTML=`Pronto <b>${esc(n)}</b>. Vai su <b>Gioca</b>.`; setPilot();
+};
+$("#selectBtn").onclick=()=>{ const n=$("#existSel").value; if(!n)return;
+  cur=n; $("#playerMsg").innerHTML=`Continui come <b>${esc(n)}</b>.`; setPilot(); };
+$("#roleSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return; flush(); newContext();
+  $$("#roleSeg button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); role=b.dataset.role;
+  startMatch(); seedCounters(); resetArena(); };
+$("#modeSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return; flush(); newContext();
+  $$("#modeSeg button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); mode=b.dataset.mode;
+  $("#dvWrap").style.display=mode==="full"?"block":"none"; startMatch(); resetArena(); refreshCounters(); };
+$("#dvSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return; flush(); newContext();
+  $$("#dvSeg button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); dv=+b.dataset.dv; startMatch(); resetArena(); };
+$("#numPad").onclick=e=>{const b=e.target.closest("button");if(!b)return; play(+b.dataset.n);};
+$("#rankSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+  $$("#rankSeg button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); renderRank(); };
+$("#rankReload").onclick=renderRank;
+$("#anReload").onclick=renderAnalysis; $("#anNick").onchange=renderAnalysis; $("#anRole").onchange=renderAnalysis;
+
+document.addEventListener("visibilitychange",()=>{ if(document.hidden) flush(); });
+window.addEventListener("pagehide",flush);
+
+/* init */
+$("#dvWrap").style.display="none";
+initDB();
+refreshPlayers();
+if(pending.length) flush(); // ritenta invii rimasti in sospeso
+setPilot();
+</script>
+</body>
+</html>
